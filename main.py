@@ -12,7 +12,7 @@ level = Level(level_map, screen)
 
 while True:
     events = pygame.event.get()
-    for event in pygame.event.get():
+    for event in events:
         if event.type == QUIT:
             pygame.quit()
             sys.exit()
