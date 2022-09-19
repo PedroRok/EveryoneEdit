@@ -7,6 +7,12 @@ from player import *
 from build import Builder
 
 
+def get_tile_on_group(tile_group, pos):
+    for sprite in tile_group.sprites():
+        if (sprite.rect.x == pos[0]) and (sprite.rect.y == pos[1]):
+            return sprite
+
+
 class Level:
     def __init__(self, level_data, surface):
         self.solid_tiles = None
@@ -37,16 +43,15 @@ class Level:
                     self.player.add(player_sprite)
 
     def set_block_at(self, pos, tile_type):
-        sd_tile = Tile((pos[0] * tile_size, pos[1] * tile_size), tile_size, TileType.PANEL)
-        bg_tile = Tile((pos[0] * tile_size, pos[1] * tile_size), tile_size, TileType.BACKGROUND)
+        pos = (pos[0] * tile_size, pos[1] * tile_size)
         if tile_type == TileType.PANEL:
+            self.bg_tiles.remove(get_tile_on_group(self.solid_tiles, pos))
+            sd_tile = Tile(pos, tile_size, TileType.PANEL)
             self.solid_tiles.add(sd_tile)
         if tile_type == TileType.BACKGROUND:
-            for sprite in self.solid_tiles.sprites():
-                if (sprite.rect.x == sd_tile.rect.x) and (sprite.rect.y == sd_tile.rect.y):
-                    self.solid_tiles.remove(sprite)
+            self.solid_tiles.remove(get_tile_on_group(self.solid_tiles, pos))
+            bg_tile = Tile(pos, tile_size, TileType.BACKGROUND)
             self.bg_tiles.add(bg_tile)
-
 
     def scroll_x(self):
         player = self.player.sprite

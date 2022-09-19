@@ -32,5 +32,3 @@ class Builder():
                     else:
                         self.level.set_block_at((x, y), TileType.PANEL)
                         level_map[y] = level_map[y][:char_index] + 'X' + level_map[y][char_index + 1:]
-
-            #self.level.setup_level(level_map, False)
