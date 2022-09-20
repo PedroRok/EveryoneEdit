@@ -1,10 +1,7 @@
-import pygame
-
-import player
-from tiles import Tile, TileType
-from settings import *
+from tiles.hotbar import HotBar
+from tiles.tiles import Tile, TileType
 from player import *
-from build import Builder
+from tiles.build import Builder
 
 
 def get_tile_on_group(tile_group, pos):
@@ -18,39 +15,42 @@ class Level:
         self.solid_tiles = None
         self.bg_tiles = None
         self.display_surface = surface
-        self.setup_level(level_data, True)
-        self.builder = Builder(self, level_data)
+        self.setup_level(level_data)
+        self.hotbar = HotBar()
+        self.builder = Builder(self, level_data, self.hotbar)
         self.world_shift_x = 0
         self.world_shift_y = 0
 
-    def setup_level(self, layout, player_update=True):
+    def setup_level(self, layout):
         self.solid_tiles = pygame.sprite.Group()
         self.bg_tiles = pygame.sprite.Group()
-        if player_update: self.player = pygame.sprite.GroupSingle()
+        self.player = pygame.sprite.GroupSingle()
 
         for row_index, row in enumerate(layout):
             for col_index, cell in enumerate(row):
                 x = col_index * tile_size
                 y = row_index * tile_size
-                if cell == 'X':
-                    tile = Tile((x, y), tile_size, TileType.PANEL)
-                    self.solid_tiles.add(tile)
-                if cell == ' ':
-                    tile = Tile((x, y), tile_size, TileType.BACKGROUND)
-                    self.bg_tiles.add(tile)
-                if cell == 'P' and player_update:
+                for tile_type in TileType:
+                    if cell == tile_type.value:
+                        if tile_type.solid:
+                            self.solid_tiles.add(Tile((x, y), tile_type))
+                        else:
+                            self.bg_tiles.add(Tile((x, y), tile_type))
+                    continue
+                if cell == -1:
                     player_sprite = Player((x, y))
                     self.player.add(player_sprite)
+                    self.bg_tiles.add(Tile((x, y), TileType.BACKGROUND))
 
     def set_block_at(self, pos, tile_type):
         pos = (pos[0] * tile_size, pos[1] * tile_size)
-        if tile_type == TileType.PANEL:
-            self.bg_tiles.remove(get_tile_on_group(self.solid_tiles, pos))
-            sd_tile = Tile(pos, tile_size, TileType.PANEL)
+        self.bg_tiles.remove(get_tile_on_group(self.solid_tiles, pos))
+        self.solid_tiles.remove(get_tile_on_group(self.solid_tiles, pos))
+        if tile_type.solid:
+            sd_tile = Tile(pos, tile_type)
             self.solid_tiles.add(sd_tile)
-        if tile_type == TileType.BACKGROUND:
-            self.solid_tiles.remove(get_tile_on_group(self.solid_tiles, pos))
-            bg_tile = Tile(pos, tile_size, TileType.BACKGROUND)
+        else:
+            bg_tile = Tile(pos, tile_type)
             self.bg_tiles.add(bg_tile)
 
     def scroll_x(self):
@@ -111,12 +111,20 @@ class Level:
     def run(self, events):
         self.bg_tiles.update(self.world_shift_x, self.world_shift_y)
         self.bg_tiles.draw(self.display_surface)
+
         self.solid_tiles.update(self.world_shift_x, self.world_shift_y)
         self.solid_tiles.draw(self.display_surface)
+
+        # Run clock every second
+        self.hotbar.drawn(self.display_surface)
+
         # self.scroll_x()
         # self.scroll_y()
 
+        self.builder.pre_rend.draw(self.display_surface)
+
         self.builder.check_clicked_pos(events)
+        self.hotbar.check_clicked_pos(events)
         self.player.update()
         self.h_move_colision()
         self.v_move_colision()
