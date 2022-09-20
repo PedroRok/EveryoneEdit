@@ -10,6 +10,7 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(topleft=pos)
 
         # Player Movement
+        self.can_move = True
         self.direction = pygame.math.Vector2(0, 0)
         self.speed = 1.5
         self.gravity = 0.5
@@ -19,17 +20,21 @@ class Player(pygame.sprite.Sprite):
         self.cd_to_align = 60
 
     def get_input(self):
+
+        if not self.can_move:
+            return
+
         keys = pygame.key.get_pressed()
 
         speedy = 0
         # Jump
-        if (keys[pygame.K_UP] or keys[pygame.K_SPACE]) and self.can_jump:
+        if (keys[pygame.K_UP] or keys[pygame.K_SPACE] or keys[ord('w')]) and self.can_jump:
             self.jump()
             speedy = +0.2
 
-        if keys[pygame.K_RIGHT]:
+        if keys[pygame.K_RIGHT] or keys[ord('d')]:
             self.direction.x += 0.2 + speedy
-        elif keys[pygame.K_LEFT]:
+        elif keys[pygame.K_LEFT] or keys[ord('a')]:
             self.direction.x -= 0.2 + speedy
         else:
             if self.direction.x > 0:

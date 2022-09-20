@@ -87,26 +87,44 @@ class Level:
 
         for sprite in self.solid_tiles.sprites():
             if sprite.rect.colliderect(player.rect):
+                colision_result = abs(sprite.rect.x - player.rect.x)
                 if player.direction.x > 0:
                     player.direction.x = 0
-                    player.rect.right = sprite.rect.left
+                    if colision_result > tile_size / 4:
+                        player.rect.right = sprite.rect.left
+                    else:
+                        player.can_move = False
                 elif player.direction.x < 0:
                     player.direction.x = 0
-                    player.rect.left = sprite.rect.right
+                    if colision_result > tile_size / 4:
+                        player.rect.left = sprite.rect.right
+                    else:
+                        player.can_move = False
+            else:
+                player.can_move = True
 
     def v_move_colision(self):
         player = self.player.sprite
         player.apply_gravity()
         for sprite in self.solid_tiles.sprites():
             if sprite.rect.colliderect(player.rect):
+                colision_result = abs(sprite.rect.y - player.rect.y)
                 if player.direction.y > 0:
                     player.on_ground = True
-                    player.rect.bottom = sprite.rect.top
+                    if colision_result > tile_size / 4:
+                        player.rect.bottom = sprite.rect.top
+                    else:
+                        player.can_move = False
                     player.direction.y = 0
                 elif player.direction.y < 0:
-                    player.rect.top = sprite.rect.bottom
+                    if colision_result > tile_size / 4:
+                        player.rect.top = sprite.rect.bottom
+                    else:
+                        player.can_move = False
                     player.on_ground = False
                     player.direction.y = 0
+            else:
+                player.can_move = True
 
     def run(self, events):
         self.bg_tiles.update(self.world_shift_x, self.world_shift_y)
@@ -125,7 +143,7 @@ class Level:
 
         self.builder.check_clicked_pos(events)
         self.hotbar.check_clicked_pos(events)
-        self.player.update()
         self.h_move_colision()
         self.v_move_colision()
+        self.player.update()
         self.player.draw(self.display_surface)
