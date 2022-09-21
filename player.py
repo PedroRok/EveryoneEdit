@@ -13,7 +13,7 @@ class Player(pygame.sprite.Sprite):
         self.can_move = True
         self.direction = pygame.math.Vector2(0, 0)
         self.speed = 1.5
-        self.gravity = 0.5
+        self.gravity = (0, 0.5)
         self.jump_speed = 8
         self.can_jump = False
         self.on_ground = False
@@ -27,20 +27,49 @@ class Player(pygame.sprite.Sprite):
         keys = pygame.key.get_pressed()
 
         speedy = 0
+
         # Jump
-        if (keys[pygame.K_UP] or keys[pygame.K_SPACE] or keys[ord('w')]) and self.can_jump:
+        if self.gravity[1] != 0:
+            if self.gravity[1] > 0:
+                jumpKey = keys[ord('w')]
+                jumpArrow = keys[pygame.K_UP]
+            else:
+                jumpKey = keys[ord('s')]
+                jumpArrow = keys[pygame.K_DOWN]
+        else:
+            if self.gravity[1] > 0:
+                jumpKey = keys[ord('D')]
+                jumpArrow = keys[pygame.K_RIGHT]
+            else:
+                jumpKey = keys[ord('A')]
+                jumpArrow = keys[pygame.K_LEFT]
+
+        if (keys[pygame.K_SPACE] or jumpKey or jumpArrow) and self.can_jump:
             self.jump()
             speedy = +0.2
 
-        if keys[pygame.K_RIGHT] or keys[ord('d')]:
-            self.direction.x += 0.2 + speedy
-        elif keys[pygame.K_LEFT] or keys[ord('a')]:
-            self.direction.x -= 0.2 + speedy
-        else:
-            if self.direction.x > 0:
-                self.direction.x -= 0.2 + speedy
-            elif self.direction.x < 0:
+        # Move
+        if self.gravity[1] != 0:
+            if keys[pygame.K_RIGHT] or keys[ord('d')]:
                 self.direction.x += 0.2 + speedy
+            elif keys[pygame.K_LEFT] or keys[ord('a')]:
+                self.direction.x -= 0.2 + speedy
+            else:
+                if self.direction.x > 0:
+                    self.direction.x -= 0.2 + speedy
+                elif self.direction.x < 0:
+                    self.direction.x += 0.2 + speedy
+
+        if self.gravity[0] != 0:
+            if keys[pygame.K_DOWN] or keys[ord('w')]:
+                self.direction.y += 0.2 + speedy
+            elif keys[pygame.K_UP] or keys[ord('s')]:
+                self.direction.y -= 0.2 + speedy
+            else:
+                if self.direction.y > 0:
+                    self.direction.y -= 0.2 + speedy
+                elif self.direction.y < 0:
+                    self.direction.y += 0.2 + speedy
 
     def manage_velocity(self):
         if self.direction.x > max_speed_x:
@@ -50,12 +79,20 @@ class Player(pygame.sprite.Sprite):
         elif 0.2 > self.direction.x > -0.2:
             self.direction.x = 0
 
-        if self.on_ground == True:
-            if self.direction.y < 0 or self.direction.y > 1:
+        if self.on_ground:
+            if (self.direction.y < 0 or self.direction.y > 1) and self.gravity[1] != 0:
                 self.can_jump = False
                 self.on_ground = False
-            else:
+            elif self.gravity[1] != 0:
                 self.can_jump = True
+
+            print(self.direction.x)
+            if (self.direction.x < 0 or self.direction.x > 1) and (self.gravity[0] != 0):
+                self.can_jump = False
+                self.on_ground = False
+            elif self.gravity[0] != 0:
+                self.can_jump = True
+
         else:
             self.can_jump = False
 
@@ -71,19 +108,33 @@ class Player(pygame.sprite.Sprite):
         value = self.rect.x / 16
         rnd = round(value) - value
         if 0.4 > rnd > -0.4:
-            #self.rect.x = round(value) * 16
+            # self.rect.x = round(value) * 16
             self.direction.x += (round(value) - value)
-            #print(rnd)
-            #self.cd_to_align = 0
+            # Todo: Finalizar isso
+            # self.cd_to_align = 0
 
     def apply_gravity(self):
-        if self.direction.y < max_speed_y:
-            self.direction.y += self.gravity
+        if self.direction.y < max_speed_y and self.gravity[1] != 0:
+            self.direction.y += self.gravity[1]
+
+        if self.direction.x < max_speed_y and self.gravity[0] != 0:
+            self.direction.x += self.gravity[0]
+        elif self.gravity[0] != 0:
+            self.rect.x += self.direction.x
+
         self.rect.y += self.direction.y
 
     def jump(self):
+        print("jumping")
         self.can_jump = False
-        self.direction.y = -self.jump_speed
+        if self.gravity[1] > 0:
+            self.direction.y = -self.jump_speed
+        elif self.gravity[1] < 0:
+            self.direction.y = +self.jump_speed
+        elif self.gravity[0] > 0:
+            self.direction.x = -self.jump_speed
+        elif self.gravity[0] < 0:
+            self.direction.x = +self.jump_speed
 
     def update(self):
         self.get_input()

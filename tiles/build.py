@@ -31,6 +31,9 @@ class Builder:
 
         if y < len(level_map) and x < len(level_map[y]):
             self.pre_render((x * tile_size, y * tile_size))
+        else:
+            for sprite in self.pre_rend.sprites():
+                sprite.kill()
 
 
         for ev in event:
