@@ -1,7 +1,10 @@
 from tiles.hotbar import HotBar
 from tiles.tiles import Tile, TileType
-from player import *
+from player.player import *
 from tiles.build import Builder
+from player.gravity import Direction
+import pygame
+from settings import *
 
 
 def get_tile_on_group(tile_group, pos):
@@ -53,48 +56,45 @@ class Level:
             bg_tile = Tile(pos, tile_type)
             self.bg_tiles.add(bg_tile)
 
-    def scroll_x(self):
-        player = self.player.sprite
-        player_x = player.rect.centerx
-        direction_x = player.direction.x
+    #def scroll_x(self):
+    #    player = self.player.sprite
+    #    player_x = player.rect.centerx
+    #    direction_x = player.direction.x
+    #
+    #    if player_x < screen_width / 8 and direction_x < 0:
+    #        self.world_shift_x = max_speed_x
+    #        player.speed = 0
+    #    elif player_x > screen_width - (screen_width / 8) and direction_x > 0:
+    #        self.world_shift_x = -max_speed_x
+    #        player.speed = 0
+    #    else:
+    #        self.world_shift_x = 0
+    #        player.speed = 3
 
-        if player_x < screen_width / 8 and direction_x < 0:
-            self.world_shift_x = max_speed_x
-            player.speed = 0
-        elif player_x > screen_width - (screen_width / 8) and direction_x > 0:
-            self.world_shift_x = -max_speed_x
-            player.speed = 0
-        else:
-            self.world_shift_x = 0
-            player.speed = 3
-
-    def scroll_y(self):
-        player = self.player.sprite
-        player_y = player.rect.centery
-        direction_y = player.direction.y
-
-        if player_y < screen_height / 8 and direction_y < 0:
-            self.world_shift_y = max_speed_y * 2
-        elif player_y > screen_height - (screen_height / 8) and direction_y > 0:
-            self.world_shift_y = -max_speed_y * 2
-
-        else:
-            self.world_shift_y = 0
+    #def scroll_y(self):
+    #    player = self.player.sprite
+    #    player_y = player.rect.centery
+    #    direction_y = player.direction.y
+    #
+    #    if player_y < screen_height / 8 and direction_y < 0:
+    #        self.world_shift_y = max_speed_y * 2
+    #    elif player_y > screen_height - (screen_height / 8) and direction_y > 0:
+    #        self.world_shift_y = -max_speed_y * 2
+    #
+    #    else:
+    #        self.world_shift_y = 0
 
     def h_move_colision(self):
         player = self.player.sprite
         player.rect.x += player.direction.x * player.speed
-
         for sprite in self.solid_tiles.sprites():
             if sprite.rect.colliderect(player.rect):
                 colision_result = abs(sprite.rect.x - player.rect.x)
+                g_direct = player.gravity.get_direction()
                 if player.direction.x > 0:
-                    player.direction.x = 0
-
-                    if player.gravity[0] > 0:
+                    if g_direct == Direction.RIGHT:
                         player.on_ground = True
-                        print("on ground 1")
-                    else:
+                    elif g_direct != Direction.DOWN and g_direct != Direction.UP:
                         player.on_ground = False
 
                     if colision_result > tile_size / 4:
@@ -102,13 +102,12 @@ class Level:
                         player.can_move = True
                     else:
                         player.can_move = False
-
-                elif player.direction.x < 0:
                     player.direction.x = 0
+                elif player.direction.x < 0:
 
-                    if player.gravity[0] < 0:
+                    if g_direct == Direction.LEFT:
                         player.on_ground = True
-                    else:
+                    elif g_direct != Direction.DOWN and g_direct != Direction.UP:
                         player.on_ground = False
 
                     if colision_result > tile_size / 4:
@@ -116,29 +115,31 @@ class Level:
                         player.can_move = True
                     else:
                         player.can_move = False
+                    player.direction.x = 0
 
     def v_move_colision(self):
         player = self.player.sprite
         player.apply_gravity()
+
         for sprite in self.solid_tiles.sprites():
             if sprite.rect.colliderect(player.rect):
                 colision_result = abs(sprite.rect.y - player.rect.y)
+                g_direct = player.gravity.get_direction()
                 if player.direction.y > 0:
-
-                    if player.gravity[1] > 0:
+                    if g_direct == Direction.DOWN:
                         player.on_ground = True
-                    else:
+                    elif g_direct != Direction.RIGHT and g_direct != Direction.LEFT:
                         player.on_ground = False
 
                     if colision_result > tile_size / 4:
                         player.rect.bottom = sprite.rect.top
                         player.can_move = True
-                    else:
+                    elif g_direct != Direction.RIGHT and g_direct != Direction.LEFT:
                         player.can_move = False
                     player.direction.y = 0
                 elif player.direction.y < 0:
 
-                    if player.gravity[1] < 0:
+                    if g_direct == Direction.UP:
                         player.on_ground = True
                     else:
                         player.on_ground = False
@@ -148,7 +149,6 @@ class Level:
                         player.can_move = True
                     else:
                         player.can_move = False
-
                     player.direction.y = 0
 
     def run(self, events):
@@ -169,6 +169,18 @@ class Level:
         self.builder.check_clicked_pos(events)
         self.hotbar.check_clicked_pos(events)
         self.player.update()
-        self.h_move_colision()
         self.v_move_colision()
+        self.h_move_colision()
+
+        for event in events:
+            if event.type == pygame.KEYDOWN:
+                if pygame.key.get_pressed()[ord('g')]:
+                    self.player.sprite.gravity.change_gravity()
+
+        font = pygame.font.Font('freesansbold.ttf', 16)
+        text = font.render('\n Gravity: '+ str(self.player.sprite.gravity.get_direction()) + ' | Player Velocity: ' + str(self.player.sprite.direction), True, (255, 0, 0))
+        #print('[PLAYER] Velocity: ' + str(self.player.sprite.direction))
+        text.get_rect().center = (screen_width / 2, screen_height / 2)
+        self.display_surface.blit(text, text.get_rect())
+
         self.player.draw(self.display_surface)
