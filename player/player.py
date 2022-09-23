@@ -54,14 +54,15 @@ class Player(pygame.sprite.Sprite):
                     self.direction.x += 0.2
 
                 if abs(self.direction.x) < 0.2:
-                    self.is_moving = False
                     self.direction.x = 0
+                    if g_direct != g_direct.NONE:
+                        self.is_moving = False
 
         if g_direct == g_direct.LEFT or g_direct == g_direct.RIGHT or g_direct == g_direct.NONE:
-            if keys[pygame.K_DOWN] or keys[ord('w')]:
+            if keys[pygame.K_DOWN] or keys[ord('s')]:
                 self.is_moving = True
                 self.direction.y += 0.2
-            elif keys[pygame.K_UP] or keys[ord('s')]:
+            elif keys[pygame.K_UP] or keys[ord('w')]:
                 self.is_moving = True
                 self.direction.y -= 0.2
             else:
@@ -71,17 +72,20 @@ class Player(pygame.sprite.Sprite):
                     self.direction.y += 0.2
 
                 if abs(self.direction.y) < 0.2:
-                    self.is_moving = False
                     self.direction.y = 0
+                    if g_direct != g_direct.NONE:
+                        self.is_moving = False
+        if g_direct == g_direct.NONE:
+            if self.direction.x == 0 and self.direction.y == 0:
+                self.is_moving = False
 
-    def limit_speed(self,  velocity):
+    def limit_speed(self, velocity):
         if velocity > max_speed_x:
             velocity = max_speed_x
         elif velocity < -max_speed_x:
             velocity = -max_speed_x + 1
         elif 0.2 > velocity > -0.2:
             velocity = 0
-            self.is_moving = False
         return velocity
 
     def manage_velocity(self):
@@ -90,7 +94,7 @@ class Player(pygame.sprite.Sprite):
         # LIMIT VELOCITY
         if g_direct == Direction.RIGHT or g_direct == Direction.LEFT:
             self.direction.y = self.limit_speed(self.direction.y)
-        elif not g_direct == Direction.NONE:
+        elif g_direct != Direction.NONE:
             self.direction.x = self.limit_speed(self.direction.x)
         else:
             self.direction.x = self.limit_speed(self.direction.x)
@@ -116,8 +120,7 @@ class Player(pygame.sprite.Sprite):
         else:
             self.can_jump = False
 
-        if (g_direct != Direction.NONE) and self.is_moving:
-            self.align()
+        self.align_new()
 
     def align(self):
         g_direct = self.gravity.get_direction()
@@ -145,13 +148,39 @@ class Player(pygame.sprite.Sprite):
                     self.rect.y += tile_size / 16
             self.cd_to_align = 0
 
+    def align_new(self):
+        g_direct = self.gravity.get_direction()
+        if g_direct == Direction.DOWN or g_direct == Direction.UP:
+            self.rect.x += self.limit_align((self.rect.x + 8) / 16)
+        elif g_direct != Direction.NONE:
+            self.rect.y += self.limit_align((self.rect.y + 8) / 16)
+        else:
+            self.rect.x += self.limit_align((self.rect.x + 8) / 16)
+            self.rect.y += self.limit_align((self.rect.y + 8) / 16)
+
+        if not self.is_moving:
+            if self.cd_to_align > 0:
+                self.cd_to_align -= 1
+            else:
+                self.cd_to_align = 0
+        else:
+            self.cd_to_align = 40
+
+    def limit_align(self, align_value):
+        align_value = (round(align_value) - align_value)
+        if self.cd_to_align <= 0 and abs(align_value) != 0.5:
+            if align_value > 0.1:
+                return -(tile_size / 16)
+            elif align_value < -0.1:
+                return tile_size / 16
+        return 0
+
     def apply_gravity(self):
         if self.gravity.get_direction() != Direction.NONE:
             self.gravity.apply_gravity()
 
     def jump(self):
         direct = self.gravity.get_direction()
-        print("[PLAYER] Jump (", direct.name, ")")
         self.can_jump = False
         if direct == Direction.DOWN:
             self.direction.y += -self.jump_speed
