@@ -27,27 +27,25 @@ class Gravity:
         # TODO: O PROBLEMA É AQUI
 
         if g_direct == Direction.DOWN:
-            if self.player.direction.y < max_speed_x:
+            if self.player.direction.y < max_speed_y:
                 self.player.direction.y += self.gravity
             else:
-                self.player.direction.y = max_speed_x - self.gravity
+                self.player.direction.y = max_speed_y - self.gravity
         elif g_direct == Direction.UP:
-            if self.player.direction.y > -max_speed_x:
+            if self.player.direction.y > -max_speed_y:
                 self.player.direction.y -= self.gravity
             else:
-                self.player.direction.y = -max_speed_x + self.gravity
+                self.player.direction.y = -max_speed_y + self.gravity
         elif g_direct == Direction.RIGHT:
-            if self.player.direction.x < max_speed_x:
+            if self.player.direction.x < max_speed_y:
                 self.player.direction.x += self.gravity
             else:
-                self.player.direction.x = max_speed_x - self.gravity
+                self.player.direction.x = max_speed_y - self.gravity
         elif g_direct == Direction.LEFT:
-            if self.player.direction.x > -max_speed_x:
+            if self.player.direction.x > -max_speed_y:
                 self.player.direction.x -= self.gravity
             else:
-                self.player.direction.x = -max_speed_x + self.gravity
-        # i think this is the problem
-        self.player.rect.y += self.player.direction.y
+                self.player.direction.x = -max_speed_y + self.gravity
 
     def get_jump_key(self, keys):
         g_direct = self.direction

@@ -86,7 +86,7 @@ class Level:
 
     def h_move_colision(self):
         player = self.player.sprite
-        player.rect.x += player.direction.x * player.speed
+        player.rect.x += player.direction.x
         for sprite in self.solid_tiles.sprites():
             if sprite.rect.colliderect(player.rect):
                 colision_result = abs(sprite.rect.x - player.rect.x)
@@ -120,6 +120,7 @@ class Level:
     def v_move_colision(self):
         player = self.player.sprite
         player.apply_gravity()
+        player.rect.y += player.direction.y
 
         for sprite in self.solid_tiles.sprites():
             if sprite.rect.colliderect(player.rect):
