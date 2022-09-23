@@ -17,6 +17,7 @@ class Level:
     def __init__(self, level_data, surface):
         self.solid_tiles = None
         self.bg_tiles = None
+        self.shadow_tiles = None
         self.display_surface = surface
         self.setup_level(level_data)
         self.hotbar = HotBar()
@@ -27,6 +28,7 @@ class Level:
     def setup_level(self, layout):
         self.solid_tiles = pygame.sprite.Group()
         self.bg_tiles = pygame.sprite.Group()
+        self.shadow_tiles = pygame.sprite.Group()
         self.player = pygame.sprite.GroupSingle()
 
         for row_index, row in enumerate(layout):
@@ -36,7 +38,9 @@ class Level:
                 for tile_type in TileType:
                     if cell == tile_type.value:
                         if tile_type.solid:
-                            self.solid_tiles.add(Tile((x, y), tile_type))
+                            sd_tile = Tile((x, y), tile_type)
+                            self.shadow_tiles.add(sd_tile.shadow)
+                            self.solid_tiles.add(sd_tile)
                         else:
                             self.bg_tiles.add(Tile((x, y), tile_type))
                     continue
@@ -49,8 +53,10 @@ class Level:
         pos = (pos[0] * tile_size, pos[1] * tile_size)
         self.bg_tiles.remove(get_tile_on_group(self.solid_tiles, pos))
         self.solid_tiles.remove(get_tile_on_group(self.solid_tiles, pos))
+        self.shadow_tiles.remove(get_tile_on_group(self.shadow_tiles, pos))
         if tile_type.solid:
             sd_tile = Tile(pos, tile_type)
+            self.shadow_tiles.add(sd_tile.shadow)
             self.solid_tiles.add(sd_tile)
         else:
             bg_tile = Tile(pos, tile_type)
@@ -156,6 +162,8 @@ class Level:
         self.bg_tiles.update(self.world_shift_x, self.world_shift_y)
         self.bg_tiles.draw(self.display_surface)
 
+        self.shadow_tiles.update(self.world_shift_x, self.world_shift_y)
+        self.shadow_tiles.draw(self.display_surface)
         self.solid_tiles.update(self.world_shift_x, self.world_shift_y)
         self.solid_tiles.draw(self.display_surface)
 
