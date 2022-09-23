@@ -16,7 +16,7 @@ class Player(pygame.sprite.Sprite):
         self.direction = pygame.math.Vector2(0, 0)
         self.speed = 1.5
         self.gravity = Gravity(self)
-        self.jump_speed = 8
+        self.jump_speed = 9
         self.can_jump = False
         self.is_moving = False
         self.on_ground = False
@@ -35,12 +35,12 @@ class Player(pygame.sprite.Sprite):
         g_direct = self.gravity.get_direction()
 
         # Jump
-        if (keys[pygame.K_SPACE] or self.gravity.get_jump_key(keys)) and self.can_jump:
+        if (self.gravity.get_jump_key(keys)) and self.can_jump:
             self.is_moving = True
             self.jump()
 
         # Move
-        if g_direct == g_direct.DOWN or g_direct == g_direct.UP:
+        if g_direct == g_direct.DOWN or g_direct == g_direct.UP or g_direct == g_direct.NONE:
             if keys[pygame.K_RIGHT] or keys[ord('d')]:
                 self.is_moving = True
                 self.direction.x += 0.2
@@ -57,7 +57,7 @@ class Player(pygame.sprite.Sprite):
                     self.is_moving = False
                     self.direction.x = 0
 
-        if g_direct == g_direct.LEFT or g_direct == g_direct.RIGHT:
+        if g_direct == g_direct.LEFT or g_direct == g_direct.RIGHT or g_direct == g_direct.NONE:
             if keys[pygame.K_DOWN] or keys[ord('w')]:
                 self.is_moving = True
                 self.direction.y += 0.2
@@ -74,25 +74,28 @@ class Player(pygame.sprite.Sprite):
                     self.is_moving = False
                     self.direction.y = 0
 
+    def limit_speed(self,  velocity):
+        if velocity > max_speed_x:
+            velocity = max_speed_x
+        elif velocity < -max_speed_x:
+            velocity = -max_speed_x + 1
+        elif 0.2 > velocity > -0.2:
+            velocity = 0
+            self.is_moving = False
+        return velocity
+
     def manage_velocity(self):
         g_direct = self.gravity.get_direction()
 
+        # LIMIT VELOCITY
         if g_direct == Direction.RIGHT or g_direct == Direction.LEFT:
-            if self.direction.y > max_speed_x:
-                self.direction.y = max_speed_x
-            elif self.direction.y < -max_speed_x:
-                self.direction.y = -max_speed_x + 1
-            elif 0.2 > self.direction.y > -0.2:
-                self.is_moving = False
-                self.direction.y = 0
+            self.direction.y = self.limit_speed(self.direction.y)
+        elif not g_direct == Direction.NONE:
+            self.direction.x = self.limit_speed(self.direction.x)
         else:
-            if self.direction.x > max_speed_x:
-                self.direction.x = max_speed_x
-            elif self.direction.x < -max_speed_x:
-                self.direction.x = -max_speed_x + 1
-            elif 0.2 > self.direction.x > -0.2:
-                self.is_moving = False
-                self.direction.x = 0
+            self.direction.x = self.limit_speed(self.direction.x)
+            self.direction.y = self.limit_speed(self.direction.y)
+        # End of LIMIT VELOCITY
 
         if self.on_ground:
             g_direct = self.gravity.get_direction()
@@ -113,7 +116,8 @@ class Player(pygame.sprite.Sprite):
         else:
             self.can_jump = False
 
-        self.align()
+        if (g_direct != Direction.NONE) and self.is_moving:
+            self.align()
 
     def align(self):
         g_direct = self.gravity.get_direction()
@@ -131,18 +135,19 @@ class Player(pygame.sprite.Sprite):
         if self.cd_to_align <= 0 and abs(align_value) != 0.5:
             if g_direct == Direction.DOWN or g_direct == Direction.UP:
                 if align_value > 0.1:
-                    self.rect.x -= tile_size/16
+                    self.rect.x -= tile_size / 16
                 elif align_value < -0.1:
-                    self.rect.x += tile_size/16
+                    self.rect.x += tile_size / 16
             else:
                 if align_value > 0.1:
-                    self.rect.y -= tile_size/16
+                    self.rect.y -= tile_size / 16
                 elif align_value < -0.1:
-                    self.rect.y += tile_size/16
+                    self.rect.y += tile_size / 16
             self.cd_to_align = 0
 
     def apply_gravity(self):
-        self.gravity.apply_gravity()
+        if self.gravity.get_direction() != Direction.NONE:
+            self.gravity.apply_gravity()
 
     def jump(self):
         direct = self.gravity.get_direction()

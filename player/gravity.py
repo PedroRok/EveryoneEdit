@@ -10,6 +10,7 @@ class Direction(Enum):
     DOWN = auto()
     LEFT = auto()
     RIGHT = auto()
+    NONE = auto()
 
 
 class Gravity:
@@ -24,7 +25,6 @@ class Gravity:
 
     def apply_gravity(self):
         g_direct = self.direction
-        # TODO: O PROBLEMA É AQUI
 
         if g_direct == Direction.DOWN:
             if self.player.direction.y < max_speed_y:
@@ -63,7 +63,7 @@ class Gravity:
         elif g_direct == Direction.RIGHT:
             jumpKey = keys[ord('A')]
             jumpArrow = keys[pygame.K_LEFT]
-        return jumpKey or jumpArrow
+        return jumpKey or jumpArrow or keys[pygame.K_SPACE]
 
     def change_gravity(self):
         g_direct = self.direction
@@ -74,4 +74,6 @@ class Gravity:
         elif g_direct == Direction.UP:
             self.direction = Direction.RIGHT
         elif g_direct == Direction.RIGHT:
+            self.direction = Direction.NONE
+        elif g_direct == Direction.NONE:
             self.direction = Direction.DOWN
