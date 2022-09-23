@@ -180,7 +180,6 @@ class Level:
 
         font = pygame.font.Font('freesansbold.ttf', 16)
         text = font.render('\n Gravity: '+ str(self.player.sprite.gravity.get_direction()) + ' | Player Velocity: ' + str(self.player.sprite.direction), True, (255, 0, 0))
-        #print('[PLAYER] Velocity: ' + str(self.player.sprite.direction))
         text.get_rect().center = (screen_width / 2, screen_height / 2)
         self.display_surface.blit(text, text.get_rect())
 
