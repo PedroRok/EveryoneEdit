@@ -34,7 +34,7 @@ class HotBar:
         self.item_in_hand = (0, tiles.tiles.TileType.REMOVER)
 
         self.hb = pygame.sprite.Group()
-        self.hb_size = (216*2, 24*2)
+        self.hb_size = (216 * 2, 24 * 2)
         self.select = pygame.sprite.GroupSingle()
 
         self.items = pygame.sprite.Group()
@@ -53,13 +53,21 @@ class HotBar:
     def set_select_pos(self, pos):
         self.select.sprite.rect.center = (self.screen_width + pos * self.hb_size[1], self.screen_height)
 
+
+    def set_item_on_slot(self, index, tiletype) -> Item:
+        return Item((self.screen_width + index * self.hb_size[1], self.screen_height), tiletype)
+
     def add_items_to_hotbar(self):
-        for tile_index, tiletype in enumerate(tiles.tiles.TileType):
-            if tile_index > 9:
+        counter = 0
+        for tiletype in tiles.tiles.TileType:
+            if tiletype == tiles.tiles.TileType.BACKGROUND:
+                continue
+            if counter > 9:
                 break
             self.items.add(
-                Item((self.screen_width + tile_index * self.hb_size[1], self.screen_height), tiletype))
+                self.set_item_on_slot(counter, tiletype))
             self.items_order.append(tiletype)
+            counter += 1
 
     def drawn(self, screen):
         self.hb.draw(screen)

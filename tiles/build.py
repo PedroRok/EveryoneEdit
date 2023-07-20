@@ -1,5 +1,5 @@
 import pygame
-from map import level_map
+from map import level_map, map_size
 from settings import tile_size
 import textures
 from tiles.tiles import *
@@ -29,12 +29,11 @@ class Builder:
         x = int(x / tile_size)
         y = int(y / tile_size)
 
-        if y < len(level_map) and x < len(level_map[y]):
+        if y < map_size[1] and x < map_size[0]:
             self.pre_render((x * tile_size, y * tile_size))
         else:
             for sprite in self.pre_rend.sprites():
                 sprite.kill()
-
 
         for ev in event:
             if ev.type == pygame.MOUSEBUTTONUP:
@@ -44,8 +43,10 @@ class Builder:
         if not pygame.mouse.get_pressed()[0]:
             return
 
-        if len(level_map) < y + 1:
+            # check if clicked position is out of bounds
+        if x > map_size[0] - 1 or y > map_size[1] - 1:
             return
+
         # check if clicked position is already in list
         if self.clicked_pos.__contains__((x, y)):
             return
@@ -58,7 +59,7 @@ class Builder:
             if tile_index == x:
                 tile = self.hotbar.get_item_in_hand()
                 # verify if is border
-                if (y < len(level_map) - 1 and x < len(level_map[y]) - 1) and (y > 0 and x > 0):
+                if (y < map_size[1] - 1 and x < map_size[0] - 1) and (y > 0 and x > 0):
                     self.set_block_at((x, y), tile)
                 elif tile.solid:
                     self.set_block_at((x, y), tile)
@@ -67,10 +68,11 @@ class Builder:
         if tile == TileType.REMOVER:
             tile = TileType.BACKGROUND
         self.level.set_block_at((pos[0], pos[1]), tile)
+
         if tile.solid or True:
-            level_map[pos[0]][pos[1]] = (tile.value, level_map[pos[0]][pos[1]][1])
+            level_map[pos[1]][pos[0]] = (tile.value, level_map[pos[1]][pos[0]][1])
             return True
         level_map[pos[0]][pos[1]] = (level_map[pos[0]][pos[1]][0], tile.value)
 
     def pre_render(self, pos):
-        self.pre_rend.add(PreRendererSprite((pos[0] , pos[1]), self.hotbar.get_item_in_hand() ))
+        self.pre_rend.add(PreRendererSprite((pos[0], pos[1]), self.hotbar.get_item_in_hand()))

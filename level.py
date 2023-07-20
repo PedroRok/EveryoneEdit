@@ -53,14 +53,13 @@ class Level:
         pos = (pos[0] * tile_size, pos[1] * tile_size)
         self.bg_tiles.remove(get_tile_on_group(self.bg_tiles, pos))
         self.solid_tiles.remove(get_tile_on_group(self.solid_tiles, pos))
-        self.shadow_tiles.remove(get_tile_on_group(self.shadow_tiles, pos))
+        self.shadow_tiles.remove(get_tile_on_group(self.shadow_tiles, (pos[0] + 1 + tile_size / 8, pos[1] + 1 + tile_size / 8)))
+        tile = Tile(pos, tile_type)
         if tile_type.solid:
-            sd_tile = Tile(pos, tile_type)
-            self.shadow_tiles.add(sd_tile.shadow)
-            self.solid_tiles.add(sd_tile)
+            self.shadow_tiles.add(tile.shadow)
+            self.solid_tiles.add(tile)
         else:
-            bg_tile = Tile(pos, tile_type)
-            self.bg_tiles.add(bg_tile)
+            self.bg_tiles.add(tile)
 
     #def scroll_x(self):
     #    player = self.player.sprite
