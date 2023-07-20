@@ -1,14 +1,14 @@
 import pygame
 from map import level_map
 from settings import tile_size
-
-select_image = pygame.image.load('resources/selected_item.png')
+import textures
+from tiles.tiles import *
 
 
 class PreRendererSprite(pygame.sprite.Sprite):
-    def __init__(self, pos):
+    def __init__(self, pos, tile_type: TileType):
         super().__init__()
-        self.image = select_image
+        self.image = tile_type.file.copy()
         self.image.set_alpha(80)
         self.rect = self.image.get_rect(topleft=pos)
 
@@ -64,8 +64,13 @@ class Builder:
                     self.set_block_at((x, y), tile)
 
     def set_block_at(self, pos, tile):
+        if tile == TileType.REMOVER:
+            tile = TileType.BACKGROUND
         self.level.set_block_at((pos[0], pos[1]), tile)
-        level_map[pos[1]][pos[0]] = tile.value
+        if tile.solid or True:
+            level_map[pos[0]][pos[1]] = (tile.value, level_map[pos[0]][pos[1]][1])
+            return True
+        level_map[pos[0]][pos[1]] = (level_map[pos[0]][pos[1]][0], tile.value)
 
     def pre_render(self, pos):
-        self.pre_rend.add(PreRendererSprite((pos[0] - 4, pos[1] - 4)))
+        self.pre_rend.add(PreRendererSprite((pos[0] , pos[1]), self.hotbar.get_item_in_hand() ))

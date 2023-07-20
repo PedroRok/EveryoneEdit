@@ -1,20 +1,21 @@
 import pygame
 
 import tiles.tiles
+import textures
 from settings import screen_width, screen_height
 
 
 class HotBarSlot(pygame.sprite.Sprite):
     def __init__(self, pos):
         super().__init__()
-        self.image = pygame.transform.scale(pygame.image.load('resources/hotbar_slot.png'), (48, 48))
+        self.image = pygame.transform.scale(textures.get().get_texture_by_label('hotbar_slot'), (48, 48))
         self.rect = self.image.get_rect(center=pos)
 
 
 class Select(pygame.sprite.Sprite):
     def __init__(self, pos):
         super().__init__()
-        self.image = pygame.transform.scale(pygame.image.load('resources/selected_item.png'), (48, 48))
+        self.image = pygame.transform.scale(textures.get().get_texture_by_label('selected_item'), (48, 48))
         self.rect = self.image.get_rect(center=pos)
 
 
@@ -30,7 +31,7 @@ class HotBar:
         super().__init__()
 
         # Index, TileType
-        self.item_in_hand = (0, tiles.tiles.TileType.BACKGROUND)
+        self.item_in_hand = (0, tiles.tiles.TileType.REMOVER)
 
         self.hb = pygame.sprite.Group()
         self.hb_size = (216*2, 24*2)
@@ -46,7 +47,7 @@ class HotBar:
         self.select.add(Select((self.screen_width, screen_height - 24)))
         self.add_items_to_hotbar()
 
-    def get_item_in_hand(self):
+    def get_item_in_hand(self) -> tiles.tiles.TileType:
         return self.item_in_hand[1]
 
     def set_select_pos(self, pos):
@@ -94,3 +95,9 @@ class HotBar:
     def set_item_in_hand(self, index):
         self.item_in_hand = (index, self.items_order[index])
         self.set_select_pos(index)
+
+    def get_item_pos_in_hand(self, id):
+        for index, item in enumerate(self.items_order):
+            if item.value == id:
+                return index
+        return 0

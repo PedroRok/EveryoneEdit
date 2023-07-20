@@ -1,5 +1,6 @@
 import pygame
 
+import textures
 from player.gravity import *
 from settings import *
 import math
@@ -8,7 +9,7 @@ import math
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos):
         super().__init__()
-        self.image = pygame.image.load("resources/player.png")
+        self.image = textures.get().get_texture_by_label("player")
         self.rect = self.image.get_rect(topleft=pos)
 
         # Player Movement

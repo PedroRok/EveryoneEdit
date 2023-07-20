@@ -36,7 +36,7 @@ class Level:
                 x = col_index * tile_size
                 y = row_index * tile_size
                 for tile_type in TileType:
-                    if cell == tile_type.value:
+                    if cell[0] == tile_type.value:
                         if tile_type.solid:
                             sd_tile = Tile((x, y), tile_type)
                             self.shadow_tiles.add(sd_tile.shadow)
@@ -44,14 +44,14 @@ class Level:
                         else:
                             self.bg_tiles.add(Tile((x, y), tile_type))
                     continue
-                if cell == -1:
+                if cell[0] == -1:
                     player_sprite = Player((x, y))
                     self.player.add(player_sprite)
                     self.bg_tiles.add(Tile((x, y), TileType.BACKGROUND))
 
     def set_block_at(self, pos, tile_type):
         pos = (pos[0] * tile_size, pos[1] * tile_size)
-        self.bg_tiles.remove(get_tile_on_group(self.solid_tiles, pos))
+        self.bg_tiles.remove(get_tile_on_group(self.bg_tiles, pos))
         self.solid_tiles.remove(get_tile_on_group(self.solid_tiles, pos))
         self.shadow_tiles.remove(get_tile_on_group(self.shadow_tiles, pos))
         if tile_type.solid:
